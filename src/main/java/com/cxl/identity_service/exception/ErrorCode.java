@@ -1,42 +1,29 @@
 package com.cxl.identity_service.exception;
 
-public enum ErrorCode {
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
-    USER_EXIT(1002,"user exited"),
-    USER_NOT_EXIT(0000,"user not exited"),
-    UNAUTHENTICATION_EXCEPTION(1006," UNAUTHENTICATION_EXCEPTION"),
-    UNCATEGORIZED_EXCEPTION(9999," UNCATEGORIZED_EXCEPTION"),
-    PASSWORD_EXCEPION(1002,"password must be at least 8 characters")
+@Getter
+public enum ErrorCode {
+    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_KEY(1001, "Uncategorized error", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
+    USERNAME_INVALID(1003, "Username must be at least {min} characters", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1004, "Password must be at least {min} characters", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
+    INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.BAD_REQUEST),
     ;
 
-    ErrorCode(int code, String message) {
+    ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
+        this.statusCode = statusCode;
     }
 
-    private int code;
-    private String message;
-
-    public String getMessage() {
-        return message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    @Override
-    public String toString() {
-        return "ErrorCode{" +
-                "code=" + code +
-                ", message='" + message + '\'' +
-                '}';
-    }
+    private final int code;
+    private final String message;
+    private final HttpStatusCode statusCode;
 }

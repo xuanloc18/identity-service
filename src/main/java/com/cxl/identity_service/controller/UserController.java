@@ -6,8 +6,13 @@ import com.cxl.identity_service.dto.request.UserUpdateRequest;
 import com.cxl.identity_service.dto.response.UserResponse;
 import com.cxl.identity_service.entity.User;
 import com.cxl.identity_service.service.UserService;
+import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.validation.Valid;
+import lombok.Builder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,25 +20,49 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
     @PostMapping
-    APIResponse<User> createUser(@RequestBody @Valid UserCreationRequest request){
-        APIResponse<User> apiResponse=new APIResponse<>();
-        apiResponse.setResult(userService.createUser(request));
-     return apiResponse;
+    APIResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request){
+
+     return APIResponse.<UserResponse>builder()
+             .result(userService.createUser(request))
+             .build();
     }
 
     @GetMapping
-    List<User> getUsers(){
-        return userService.getUsers();
+    APIResponse<List<UserResponse>> getUsers() {
+        var authentication=  SecurityContextHolder.getContext().getAuthentication();
+        log.info("Username :{}",authentication.getName());
+        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
+
+
+        return APIResponse.<List<UserResponse>>builder()
+                .result(userService.getUsers())
+                .build();
     }
 
+
     @GetMapping("/{userID}")
-    UserResponse getUsers(@PathVariable("userID") String userID){
-    return userService.getUser(userID);
+    APIResponse<UserResponse> getUsers(@PathVariable("userID") String userID){
+    return APIResponse.<UserResponse>builder()
+            .result(userService.getUser(userID))
+            .build();
+
+
     }
+    @GetMapping("/myInfor")
+    APIResponse<UserResponse> getUser(){
+        return APIResponse.<UserResponse>builder()
+                .result(userService.getMyInfor())
+                .build();
+
+
+    }
+
+
 
     @PutMapping({"/{userID}"})
     UserResponse updateUser(@PathVariable("userID") String userID, @RequestBody UserUpdateRequest request){

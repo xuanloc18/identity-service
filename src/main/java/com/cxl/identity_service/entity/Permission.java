@@ -1,6 +1,6 @@
-package com.cxl.identity_service.dto.response;
+package com.cxl.identity_service.entity;
 
-import com.cxl.identity_service.entity.Role;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,17 +10,18 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDate;
 import java.util.Set;
 
-@Data
+@Entity
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class Permission {
 
-         String id;
-         String userName;
-         String firstName;
-         String lastName;
-         LocalDate dbo;
-         Set<RoleResponse> roles;
+    @Id
+     String name;
+     String description;
+
+
+
 }

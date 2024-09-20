@@ -3,8 +3,10 @@ package com.cxl.identity_service.controller;
 import com.cxl.identity_service.dto.request.APIResponse;
 import com.cxl.identity_service.dto.request.AuthenticationRequest;
 import com.cxl.identity_service.dto.request.IntrospectRequest;
+import com.cxl.identity_service.dto.request.LogoutRequest;
 import com.cxl.identity_service.dto.response.AuthenticationResponse;
 import com.cxl.identity_service.dto.response.IntrospectResponse;
+import com.cxl.identity_service.entity.InvalidateToken;
 import com.cxl.identity_service.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
@@ -48,6 +50,17 @@ public class AuthenticationController {
                 .build();
 
     }
+
+    @PostMapping("/logout")
+    APIResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+
+      authenticationService.logout(request);
+
+        return APIResponse.<Void>builder()
+                .build();
+
+    }
+
 
 
 
