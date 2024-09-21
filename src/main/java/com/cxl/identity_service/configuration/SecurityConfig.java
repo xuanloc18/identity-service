@@ -1,6 +1,7 @@
 package com.cxl.identity_service.configuration;
 
 import com.cxl.identity_service.enums.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +28,8 @@ public class SecurityConfig {
     private  final String[] PUBLIC_ENPOINTS={"/users","/auth/login","/auth/introspect","/auth/logout"};
     @Value("${jwt.signerKey}")
     private String signerKey;
-
+    @Autowired
+    private  CustomJWTDecoder customJWTDecoder;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request->
@@ -39,7 +41,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth->
-                oauth.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder()))
+                oauth.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJWTDecoder))
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint())//authenticationEntryPoint để bắt các lỗi chưa xác thực
 //                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
         );

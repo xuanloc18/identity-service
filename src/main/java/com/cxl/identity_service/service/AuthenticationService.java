@@ -44,7 +44,7 @@ import java.util.UUID;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@RequiredArgsConstructor
+@RequiredArgsConstructor//là một annotation trong Lombok tự động tạo constructor cho các trường (fields) có giá trị là final hoặc được đánh dấu là @NonNull
 public class AuthenticationService {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     @Autowired
