@@ -3,6 +3,7 @@ package com.cxl.identity_service.service;
 import com.cxl.identity_service.dto.request.AuthenticationRequest;
 import com.cxl.identity_service.dto.request.IntrospectRequest;
 import com.cxl.identity_service.dto.request.LogoutRequest;
+import com.cxl.identity_service.dto.request.RefreshRequest;
 import com.cxl.identity_service.dto.response.AuthenticationResponse;
 import com.cxl.identity_service.dto.response.IntrospectResponse;
 import com.cxl.identity_service.entity.InvalidateToken;
@@ -50,6 +51,12 @@ public class AuthenticationService {
     @Autowired
     UserRespository userRespository;
     @NonFinal
+    @Value("${jwt.valid-duration}")
+    protected   Long VALID_DURATION;
+    @NonFinal
+    @Value("${jwt.refreshable-duration}")
+    protected   Long REFESHABLE_DURATION;
+    @NonFinal
     @Value("${jwt.signerKey}")
     protected   String SINGER_KEY;
     @Autowired
@@ -61,7 +68,7 @@ public class AuthenticationService {
         var token = request.getToken();
         boolean valid=true;
        try {
-           verifyToken(token);
+           verifyToken(token,false);
        }catch (AppException appException){
            valid=false;
 
@@ -101,7 +108,7 @@ public class AuthenticationService {
                 .issuer("devteria.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1,ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope",buildScrope(user))
@@ -135,10 +142,13 @@ public class AuthenticationService {
 
 
     }
-    private SignedJWT verifyToken(String token) throws ParseException, JOSEException {
+    private SignedJWT verifyToken(String token,boolean isRefresh) throws ParseException, JOSEException {
         SignedJWT signedJWT=SignedJWT.parse(token);
         JWSVerifier verifier=new MACVerifier(SINGER_KEY.getBytes());
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expiryTime = (isRefresh)
+                ?new Date(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plus(REFESHABLE_DURATION,ChronoUnit.SECONDS).toEpochMilli())
+                :signedJWT.getJWTClaimsSet().getExpirationTime();
+
         boolean veri=signedJWT.verify(verifier);
         if(!(veri&&expiryTime.after(new Date()))){
             throw  new  AppException(ErrorCode.UNAUTHENTICATED);
@@ -152,14 +162,42 @@ public class AuthenticationService {
 
 
     public    void  logout(LogoutRequest request) throws ParseException, JOSEException {
-            var signToken=verifyToken(request.getToken());
-            String jit=signToken.getJWTClaimsSet().getJWTID();
-            Date expiry=signToken.getJWTClaimsSet().getExpirationTime();
+            try{
+                var signToken=verifyToken(request.getToken(),true);
+                String jit=signToken.getJWTClaimsSet().getJWTID();
+                Date expiry=signToken.getJWTClaimsSet().getExpirationTime();
+
+                InvalidateToken invalidateToken= InvalidateToken.builder()
+                        .id(jit)
+                        .expiryTime(expiry)
+                        .build();
+                invalidateTokenRepository.save(invalidateToken);
+            }
+            catch (AppException exception){
+                log.warn("token already expired");
+
+            }
+
+
+    }
+    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
+        var signJWT=verifyToken(request.getToken(),true);
+        var jit=signJWT.getJWTClaimsSet().getJWTID();
+        var expiryTime=signJWT.getJWTClaimsSet().getExpirationTime();
         InvalidateToken invalidateToken= InvalidateToken.builder()
                 .id(jit)
-                .expiryTime(expiry)
+                .expiryTime(expiryTime)
                 .build();
         invalidateTokenRepository.save(invalidateToken);
+
+        var username= signJWT.getJWTClaimsSet().getSubject();
+        var token=generrateToken(username);
+
+        return  AuthenticationResponse.builder()
+                .token(token)
+                .authentication(true)
+                .build();
+
     }
 
 

@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private  final String[] PUBLIC_ENPOINTS={"/users","/auth/login","/auth/introspect","/auth/logout"};
+    private  final String[] PUBLIC_ENPOINTS={"/users","/auth/login","/auth/introspect","/auth/logout","/auth/refresh"};
     @Value("${jwt.signerKey}")
     private String signerKey;
     @Autowired
@@ -35,8 +35,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(request->
                 request.requestMatchers(HttpMethod.POST,PUBLIC_ENPOINTS).permitAll()
 
-//                        .requestMatchers(HttpMethod.GET,"/users")
-//                        .hasAuthority("SCOPE_ADMIN")// là admin mới cho vào
+                        .requestMatchers(HttpMethod.GET,"/users")
+                        .hasAuthority("SCOPE_ADMIN")// là admin mới cho vào
 
                         .anyRequest().authenticated());
 

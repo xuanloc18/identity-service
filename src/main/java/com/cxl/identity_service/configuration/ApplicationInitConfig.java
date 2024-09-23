@@ -3,6 +3,7 @@ package com.cxl.identity_service.configuration;
 import com.cxl.identity_service.dto.response.UserResponse;
 import com.cxl.identity_service.entity.User;
 import com.cxl.identity_service.enums.Role;
+import com.cxl.identity_service.respository.RoleRepository;
 import com.cxl.identity_service.respository.UserRespository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +20,20 @@ public class ApplicationInitConfig {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    RoleRepository roleRepository;
 
     @Bean
     ApplicationRunner applicationRunner (UserRespository userRespository){
        return  args -> {//args đại diện cho các câu lệnh
            if(userRespository.findByUserName("admin").isEmpty()){
-              Set<String> roles=new HashSet<>();
-              roles.add(Role.ADMIN.name());
+              Set<com.cxl.identity_service.entity.Role> roles=new HashSet<>();
+              var role=roleRepository.findById(Role.ADMIN.name()).orElseThrow(()->new RuntimeException(""));
+              roles.add(role);
                User user= User.builder()
                        .userName("admin")
                        .passWord(passwordEncoder.encode("admin"))
-//                       .roles("ADMIN")
+                       .roles(roles)
                         .build();
                userRespository.save(user);
                log.warn("admin user has been reated with default password:admin,please change it");

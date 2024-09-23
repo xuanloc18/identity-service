@@ -1,9 +1,6 @@
 package com.cxl.identity_service.controller;
 
-import com.cxl.identity_service.dto.request.APIResponse;
-import com.cxl.identity_service.dto.request.AuthenticationRequest;
-import com.cxl.identity_service.dto.request.IntrospectRequest;
-import com.cxl.identity_service.dto.request.LogoutRequest;
+import com.cxl.identity_service.dto.request.*;
 import com.cxl.identity_service.dto.response.AuthenticationResponse;
 import com.cxl.identity_service.dto.response.IntrospectResponse;
 import com.cxl.identity_service.entity.InvalidateToken;
@@ -57,6 +54,16 @@ public class AuthenticationController {
       authenticationService.logout(request);
 
         return APIResponse.<Void>builder()
+                .build();
+
+    }
+    @PostMapping("/refresh")
+    APIResponse<AuthenticationResponse> logout(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+
+
+
+        return APIResponse.<AuthenticationResponse>builder()
+                .result(authenticationService.refreshToken(request))
                 .build();
 
     }

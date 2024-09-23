@@ -38,7 +38,7 @@ public class CustomJWTDecoder implements JwtDecoder {
             throw new JwtException(e.getMessage());
 
         }
-        if (Objects.isNull(nimbusJwtDecoder)){
+        if (Objects.isNull(nimbusJwtDecoder)){//check xem nếu nimbus đã được tao thì chỉ mang ra duùng
             SecretKeySpec secretKeySpec=new SecretKeySpec(SINGER_KEY.getBytes(),"HS512");
             nimbusJwtDecoder=NimbusJwtDecoder.withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)

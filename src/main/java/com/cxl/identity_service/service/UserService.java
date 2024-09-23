@@ -45,9 +45,10 @@ public class UserService {
     User user=userMapper.toUser(request);
         PasswordEncoder passwordEncoder=new BCryptPasswordEncoder(10);
         user.setPassWord(passwordEncoder.encode(request.getPassWord()));
-        HashSet<String> roles=new HashSet<>();
-        roles.add(Role.USER.name());
-      //  user.setRoles(roles);
+        HashSet<com.cxl.identity_service.entity.Role> roles=new HashSet<>();
+        var role=roleRepository.findById(com.cxl.identity_service.enums.Role.USER.name()).orElseThrow(()-> new RuntimeException(""));
+        roles.add(role);
+      user.setRoles(roles);
 
     return  userMapper.toUserResponse(userRespository.save(user)) ;
 
